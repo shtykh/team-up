@@ -10,7 +10,7 @@ class Bot
 
 fun main(args: Array<String>) {
     var state: State = Start()
-    bot(botProperties) longPooling {
+    bot(botProperties) longPolling {
         configure {
             helloMessage("Hello! I'm Bot based on commands. Write '/'")
             updates {
