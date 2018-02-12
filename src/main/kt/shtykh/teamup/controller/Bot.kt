@@ -2,12 +2,14 @@ package shtykh.teamup.controller
 
 import com.github.ivan_osipov.clabo.dsl.bot
 import com.github.ivan_osipov.clabo.dsl.props
+import shtykh.teamup.domain.team.Team
 
 val botProperties = props(Bot::class, "bot.properties")
 
 class Bot
 
 fun main(args: Array<String>) {
+    var state: State = Start()
     bot(botProperties) longPooling {
         configure {
             helloMessage("Hello! I'm Bot based on commands. Write '/'")
@@ -17,6 +19,9 @@ fun main(args: Array<String>) {
         }
 
         commands {
+            register("team") {
+                it.update.message answer Team.get(it.parameter!!).toJson()
+            }
             register("no") {
                 it.update.message answer "No!"
             }
