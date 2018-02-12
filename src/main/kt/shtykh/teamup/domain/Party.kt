@@ -1,7 +1,19 @@
 package shtykh.teamup.domain
 
-abstract class Party<out T>(open var name: String = "Some party") {
-    open val members: MutableList<String> = ArrayList()
+abstract class Party<out T> {
+    var id: String
+        set(value) {
+            field = value.replace(" ", "_")
+        }
+    open var name: String
+
+    constructor(id: String, name: String = "Some party") {
+        this.id = id
+        this.name = name
+        this.members = ArrayList()
+    }
+
+    open val members: MutableList<String>
 
     fun size(): Int {
         return members.size

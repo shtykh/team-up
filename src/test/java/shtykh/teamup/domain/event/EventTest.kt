@@ -26,7 +26,7 @@ class EventTest {
         place()
         hire()
         hamburg.save()
-        Assert.assertEquals(hamburg, Event.get("Going Hamburg"))
+        Assert.assertEquals(hamburg, Event.get("Going_Hamburg"))
     }
 
     @Test

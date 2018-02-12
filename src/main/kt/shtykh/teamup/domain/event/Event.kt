@@ -23,7 +23,7 @@ class Event(override var name: String = "Event", var capacity: Int = 6) : Party<
     }
 
     override fun fileName(): String {
-        return name
+        return id
     }
 
     override fun directoryFile(): File {
@@ -45,8 +45,8 @@ class Event(override var name: String = "Event", var capacity: Int = 6) : Party<
     companion object {
         val directory = EventDirectory()
 
-        fun get(key: String): Event {
-            return directory.get(key) as Event
+        fun get(key: String): Event? {
+            return directory.get(key) as Event?
         }
     }
 }

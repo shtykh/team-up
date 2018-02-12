@@ -22,9 +22,9 @@ class TeamTest {
     @Test
     fun load() {
         beatles.save()
-        val clone = Team.get("The Beatles")
+        val clone = Team.get("The_Beatles")
         Assert.assertEquals(beatles, clone)
-        clone.legio hire john
+        clone!!.legio hire john
         Assert.assertNotEquals(beatles, clone)
     }
 
@@ -35,7 +35,7 @@ class TeamTest {
 
     @org.junit.Test
     fun getFileName() {
-        Assert.assertEquals("The Beatles", beatles.fileName())
+        Assert.assertEquals("The_Beatles", beatles.fileName())
     }
 
     @org.junit.Test

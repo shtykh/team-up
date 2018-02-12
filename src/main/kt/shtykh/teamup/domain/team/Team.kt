@@ -14,7 +14,7 @@ class Team(override var name: String = "Team Awesome") : Party<Team>(name), File
     val legio: PartyImpl = PartyImpl(name + " legio")
 
     override fun fileName(): String {
-        return name
+        return id
     }
 
     override fun directoryFile(): File {
@@ -45,8 +45,8 @@ class Team(override var name: String = "Team Awesome") : Party<Team>(name), File
     companion object {
         val directory = TeamDirectory()
 
-        fun get(key: String): Team {
-            return directory.get(key) as Team
+        fun get(key: String): Team? {
+            return directory.get(key) as Team?
         }
     }
 }

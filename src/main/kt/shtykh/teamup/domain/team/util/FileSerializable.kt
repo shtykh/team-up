@@ -48,8 +48,12 @@ abstract class Directory<T : FileSerializable> {
         return file
     }
 
-    fun get(key: String): T {
-        return cache.computeIfAbsent(key, { load(key) })
+    fun get(key: String): T? {
+        return try {
+            cache.computeIfAbsent(key, { load(key) })
+        } catch (ex: Exception) {
+            null
+        }
     }
 
     fun put(value: T) {

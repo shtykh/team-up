@@ -47,8 +47,8 @@ class Person(val id: String = "", var name: String = "John Doe") : FileSerializa
     companion object {
         val directory = PersonDirectory()
 
-        fun get(key: String): Person {
-            return directory.get(key) as Person
+        fun get(key: String): Person? {
+            return directory.get(key) as Person?
         }
     }
 }

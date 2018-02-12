@@ -86,7 +86,7 @@
         <dependency>
             <groupId>com.github.ivan-osipov</groupId>
             <artifactId>Clabo</artifactId>
-            <version>master-115ef46378-1</version>
+            <version>master-aeab8492ba-1</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
