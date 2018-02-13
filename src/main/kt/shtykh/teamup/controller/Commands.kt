@@ -2,7 +2,7 @@ package shtykh.teamup.controller
 
 import com.github.ivan_osipov.clabo.dsl.props
 
-val commands = props(Bot::class, "commands.properties")
+val commands = props(Commands::class, "commands.properties")
 
 object Commands {
     fun forStart() : String {
