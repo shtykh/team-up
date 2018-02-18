@@ -9,13 +9,13 @@ import com.github.ivan_osipov.clabo.state.chat.StaticChatContext
 import com.github.ivan_osipov.clabo.utils.ChatId
 import shtykh.teamup.controller.Commands.forHelp
 import shtykh.teamup.controller.Commands.forStart
-import java.util.*
 
 val botProperties = props(TeamUpState::class, "bot.properties")
 
 fun main(args: Array<String>) {
-    val chatStore = TeamUpChatStore()
     bot(botProperties) longPolling {
+        val chatStore = TeamUpChatStore { message, s -> message answer s} // gross
+
         configure {
             helloMessage("Hello! I'm Bot based on commands. Write '/'")
             updates {
@@ -51,13 +51,13 @@ fun main(args: Array<String>) {
     }
 }
 
-class TeamUpChatStore : ChatStateStore<TeamUpChatContext> {
+class TeamUpChatStore(var answerFunction: (Message?, String) -> Unit) : ChatStateStore<TeamUpChatContext> {
     val contextMap: MutableMap<ChatId, TeamUpChatContext> = HashMap()
 
-    fun answer(context: TeamUpChatContext): (Message, Update) -> Unit = context.answer()
-
     override fun getChatContext(chatId: ChatId): TeamUpChatContext {
-        return contextMap.getOrPut(chatId, { TeamUpChatContext(chatId).also { it.onMessage(answer(it)) } })
+        val orDefault = contextMap.getOrDefault(chatId, TeamUpChatContext(chatId, answerFunction))
+        contextMap.putIfAbsent(chatId, orDefault)
+        return orDefault
     }
 
     override fun updateContext(chatId: ChatId, chatContext: TeamUpChatContext) {
@@ -65,17 +65,20 @@ class TeamUpChatStore : ChatStateStore<TeamUpChatContext> {
     }
 }
 
-private fun doAnswer(message: Message?, answer: String) {
-    print(answer)
-}
+class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -> Unit) : StaticChatContext() {
 
-class TeamUpChatContext(chatId: ChatId) : StaticChatContext() {
-    var state: TeamUpState = Start("start", this, chatId)
+    var state: TeamUpState
+
+    init {
+        this.state = Start("start", this, chatId)
+        messageCallbacks.add(this.answer())
+    }
+
     fun answer(command: String? = null): (Message, Update) -> Unit = { message, update ->
         run {
             val newState = state.next(command, message.text)
             state = newState
-            doAnswer(update.message, state.answer())
+            answerFunction.invoke(update.message, state.answer())
         }
     }
 }
