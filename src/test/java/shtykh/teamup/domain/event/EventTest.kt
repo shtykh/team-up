@@ -16,7 +16,7 @@ import java.util.*
 @RunWith(Arquillian::class)
 class EventTest {
 
-    val hamburg = Event("Going Hamburg")
+    val hamburg = Event("Going Hamburg", admin = paul.id)
 
     @Test
     fun load() {

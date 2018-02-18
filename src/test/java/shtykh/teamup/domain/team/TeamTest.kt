@@ -22,10 +22,11 @@ class TeamTest {
     @Test
     fun load() {
         beatles.save()
+        Team.directory.clearCache()
         val clone = Team.get("The_Beatles")
         Assert.assertEquals(beatles, clone)
         clone!!.legio hire john
-        Assert.assertNotEquals(beatles, clone)
+        Assert.assertFalse(beatles equals clone)
     }
 
     @org.junit.Test

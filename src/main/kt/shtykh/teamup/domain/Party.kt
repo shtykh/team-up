@@ -13,7 +13,7 @@ abstract class Party<out T> {
         this.members = ArrayList()
     }
 
-    open val members: MutableList<String>
+    open var members: MutableList<String>
 
     fun size(): Int {
         return members.size
@@ -96,4 +96,9 @@ class PartyImpl(override var name: String = "PartyImpl") : Party<PartyImpl>(name
     override fun instance(): PartyImpl {
         return this
     }
+}
+
+interface Manageble {
+    var admin: String
+    fun managers(): MutableList<String>
 }

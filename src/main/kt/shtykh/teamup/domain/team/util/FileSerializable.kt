@@ -63,4 +63,8 @@ abstract class Directory<T : FileSerializable> {
             save(value)
         }
     }
+
+    fun clearCache() {
+        cache.clear()
+    }
 }

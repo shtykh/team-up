@@ -1,5 +1,6 @@
 package shtykh.teamup.domain.event
 
+import shtykh.teamup.domain.Manageble
 import shtykh.teamup.domain.Party
 import shtykh.teamup.domain.team.util.Directory
 import shtykh.teamup.domain.team.util.FileSerializable
@@ -7,12 +8,14 @@ import java.io.File
 import java.io.InvalidObjectException
 import java.util.*
 
-class Event(override var name: String = "Event", var capacity: Int = 6) : Party<Event>(name), FileSerializable {
+class Event(override var name: String = "Event", var capacity: Int = 6, override var admin: String = "nobody") : Party<Event>(name), FileSerializable, Manageble {
 
     var description: String? = null
     var time: Date? = null
     var place: String? = null
     var teamName: String? = null
+
+    override fun managers(): MutableList<String> = members
 
     override fun instance(): Event {
         return this

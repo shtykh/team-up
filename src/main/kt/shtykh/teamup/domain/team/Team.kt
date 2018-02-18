@@ -1,17 +1,21 @@
 package shtykh.teamup.domain.team
 
+import shtykh.teamup.domain.Manageble
 import shtykh.teamup.domain.Party
 import shtykh.teamup.domain.PartyImpl
 import shtykh.teamup.domain.team.util.Directory
 import shtykh.teamup.domain.team.util.FileSerializable
 import java.io.File
 
-class Team(override var name: String = "Team Awesome") : Party<Team>(name), FileSerializable  {
+class Team(override var name: String = "Team Awesome", override var admin: String = "nobody") : Party<Team>(name), FileSerializable, Manageble  {
+
+    var legio: PartyImpl = PartyImpl(name + " legio")
+
+    override fun managers(): MutableList<String> = members
+
     override fun instance(): Team {
         return this
     }
-
-    val legio: PartyImpl = PartyImpl(name + " legio")
 
     override fun fileName(): String {
         return id
@@ -21,7 +25,7 @@ class Team(override var name: String = "Team Awesome") : Party<Team>(name), File
         return FileSerializable.dir(this.javaClass.simpleName)
     }
 
-    override fun equals(other: Any?): Boolean {
+    override infix fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
         if (!super.equals(other)) return false
