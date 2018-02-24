@@ -25,7 +25,9 @@ fun main(args: Array<String>) {
 
         commands {
             registerForUnknown {
-                chatStore.getChatContext(it.message.chat.id)
+                val chatContext = chatStore.getChatContext(it.message.chat.id)
+                println("${chatContext.state.javaClass.simpleName} with ${it.update.message?.from?.username}")
+                chatContext
                         .answer(it.name)(it.message, it.update)
             }
         }
@@ -36,7 +38,8 @@ fun main(args: Array<String>) {
         onStart {
             println("Start with ${it.update.message?.from?.username}")
             chatStore.getChatContext(it.message.migrateToChatId ?: "default")
-            it.message answer forStart()
+            val chatContext = chatStore.getChatContext(it.message.chat.id)
+            it.update.message answer chatContext.state.answer()
         }
 
         onHelp {

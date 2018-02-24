@@ -5,6 +5,7 @@ import shtykh.teamup.domain.Party
 import shtykh.teamup.domain.PartyImpl
 import shtykh.teamup.domain.team.util.Directory
 import shtykh.teamup.domain.team.util.FileSerializable
+import shtykh.teamup.domain.team.util.Jsonable
 import java.io.File
 
 class Team(override var name: String = "Team Awesome", override var admin: String = "nobody") : Party<Team>(name), FileSerializable, Manageble  {
@@ -45,6 +46,11 @@ class Team(override var name: String = "Team Awesome", override var admin: Strin
     override fun directory(): TeamDirectory {
         return directory
     }
+
+    override fun toString(): String {
+        return "Team(name='$name', admin='$admin', members='$members' legio=$legio)"
+    }
+
 
     companion object {
         val directory = TeamDirectory()

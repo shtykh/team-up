@@ -1,8 +1,9 @@
 package shtykh.teamup.domain.team.util
 
+import shtykh.teamup.domain.util.Util
 import java.io.File
 
-interface FileSerializable : Jsonable {
+interface FileSerializable: Jsonable {
 
     fun directoryFile(): File
 
@@ -27,7 +28,7 @@ interface FileSerializable : Jsonable {
             return dir
         }
 
-        inline fun <reified T : FileSerializable> load(input: File): T {
+        inline fun <reified T : Jsonable> load(input: File): T {
             return Jsonable.fromJson(Util.read(input))
         }
 
@@ -59,7 +60,7 @@ abstract class Directory<T : FileSerializable> {
     fun put(value: T) {
         val key = value.fileName()
         if (cache[key] != value) {
-            cache.put(key, value)
+            cache[key] = value
             save(value)
         }
     }

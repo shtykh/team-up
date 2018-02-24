@@ -1,26 +1,18 @@
 package shtykh.teamup.domain.event
 
-import org.jboss.arquillian.container.test.api.Deployment
-import org.jboss.arquillian.junit.Arquillian
-import org.jboss.shrinkwrap.api.ShrinkWrap
-import org.jboss.shrinkwrap.api.asset.EmptyAsset
-import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import shtykh.teamup.domain.*
 import java.io.InvalidObjectException
 import java.util.*
 
-@RunWith(Arquillian::class)
 class EventTest {
 
     val hamburg = Event("Going Hamburg", admin = paul.id)
 
     @Test
     fun load() {
-        hireBeatles()
+        theBeatles()
         description()
         date()
         place()
@@ -51,8 +43,9 @@ class EventTest {
 
     @Test
     fun hire() {
-        hamburg.teamName = beatles.name
-        Assert.assertEquals(beatles.name, hamburg.teamName)
+        val theBeatles = theBeatles()
+        hamburg.teamName = theBeatles.name
+        Assert.assertEquals(theBeatles.name, hamburg.teamName)
         hamburg.hireAll(john, paul, george, pete, stewart)
         Assert.assertEquals(5, hamburg.members.size)
         hamburg hire george hire george hire george hire george hire george // duplicated people are ignored
@@ -76,21 +69,10 @@ class EventTest {
         hamburg.hireAll(john, paul, george, pete, stewart)
         Assert.assertEquals(5, hamburg.members.size)
         try {
-            hamburg.hireAll( Person("freddie"), Person("mic"))
+            hamburg.hireAll(Person("freddie"), Person("mic"))
             Assert.assertFalse("Exception should have been thrown", true)
         } catch (ioe: InvalidObjectException) {
         }
         Assert.assertTrue("Over capacity", hamburg.members.size <= hamburg.capacity)
     }
-
-    companion object {
-
-        @Deployment
-        fun createDeployment(): JavaArchive {
-            return ShrinkWrap.create(JavaArchive::class.java)
-                    .addClass(Event::class.java)
-                    .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
-        }
-    }
-
 }

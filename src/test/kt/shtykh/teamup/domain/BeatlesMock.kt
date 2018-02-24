@@ -13,11 +13,11 @@ val pete = Person("pete", "Pete Best")
 
 val stewart = Person("stewart", "Stuart Sutcliffe")
 
-var beatles = Team("The Beatles", john.id)
-
-fun hireBeatles() : Team {
+fun theBeatles() : Team {
+    val beatles = Team("The Beatles", john.id)
     beatles.hireAll(john, paul, ringo, george)
             .legio.hireAll(pete, stewart)
+    beatles.save()
     return beatles
 }
 

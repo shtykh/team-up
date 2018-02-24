@@ -4,6 +4,8 @@ import com.github.ivan_osipov.clabo.state.chat.ChatContext
 import com.github.ivan_osipov.clabo.state.chat.ChatState
 
 abstract class TeamUpState(open val message: String, context: ChatContext, chatId: String) : ChatState<ChatContext>(chatId, context) {
+    constructor(message: String, prev: TeamUpState) : this(message, prev.context, prev.chatId)
+
     fun next(command: String?, parameter: String?): TeamUpState {
         val internalCommand = command ?: ""
         return nextOrNull(internalCommand, parameter)
@@ -11,15 +13,15 @@ abstract class TeamUpState(open val message: String, context: ChatContext, chatI
     }
 
     fun answer(): String {
-        return "$message\n" +
-                getCommands().map { Commands.get(it.toString(), Commands::forStart) }
-                        .reduce { fi, se -> "$fi\n$se" }
+        val commandString = getCommands()
+                .takeIf { it.isNotEmpty() }
+                ?.map { Commands.get(it, Commands::forStart) }
+                ?.reduce { fi, se -> "$fi\n$se" }
+                .orEmpty()
+        return "$message\n" + commandString
     }
 
-    open fun getCommands(): List<Any> {
-        return commands.keys().toList()
-    }
-
+    abstract fun getCommands(): List<String>
 
     abstract fun nextOrNull(command: String, parameter: String?): TeamUpState?
 
@@ -51,9 +53,10 @@ abstract class TeamUpState(open val message: String, context: ChatContext, chatI
     }
 
     inline fun <reified T> findObject(key: String?,
-                                      objectSupplier: (String) -> T?,
-                                      stateByObjectSupplier: (T) -> TeamUpState,
-                                      stateByParameterSupplier: (String?) -> TeamUpState): TeamUpState {
+                                           objectSupplier: (String) -> T?,
+                                           stateByObjectSupplier: (T) -> TeamUpState,
+                                           stateByParameterSupplier: (String?) -> TeamUpState = {Start("Illegal parameter for ${this.javaClass.simpleName} as $it", context, chatId)})
+            : TeamUpState {
         val objectName = key ?: ""
         val obj = objectSupplier.invoke(objectName)
         return if (obj != null) {
@@ -62,4 +65,6 @@ abstract class TeamUpState(open val message: String, context: ChatContext, chatI
             stateByParameterSupplier.invoke(key)
         }
     }
+
+    fun objectNotFound(): (String?) -> Start = {it -> Start("Illegal parameter for ${this.javaClass.simpleName} as $it", context, chatId)}
 }

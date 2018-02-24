@@ -96,6 +96,12 @@ class PartyImpl(override var name: String = "PartyImpl") : Party<PartyImpl>(name
     override fun instance(): PartyImpl {
         return this
     }
+
+    override fun toString(): String {
+        return "PartyImpl(name='$name', members='$members')"
+    }
+
+
 }
 
 interface Manageble {
