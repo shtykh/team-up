@@ -8,9 +8,9 @@ import shtykh.teamup.domain.team.util.FileSerializable
 import shtykh.teamup.domain.team.util.Jsonable
 import java.io.File
 
-class Team(override var name: String = "Team Awesome", override var admin: String = "nobody") : Party<Team>(name), FileSerializable, Manageble  {
+class Team(override var name: String = "Team Awesome", override var admin: String = "Nobody") : Party<Team>(name), FileSerializable, Manageble  {
 
-    var legio: PartyImpl = PartyImpl(name + " legio")
+    var legio: PartyImpl
 
     override fun managers(): MutableList<String> = members
 
@@ -58,6 +58,11 @@ class Team(override var name: String = "Team Awesome", override var admin: Strin
         fun get(key: String): Team? {
             return directory.get(key) as Team?
         }
+    }
+
+    init {
+        this hire admin
+        this.legio = PartyImpl(name + " legio")
     }
 }
 

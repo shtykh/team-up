@@ -1,7 +1,5 @@
 package shtykh.teamup.controller
 
-import com.github.ivan_osipov.clabo.api.input.toJson
-import com.github.ivan_osipov.clabo.state.chat.ChatContext
 import shtykh.teamup.domain.Party
 import shtykh.teamup.domain.Person
 import shtykh.teamup.domain.event.Event
@@ -9,9 +7,11 @@ import shtykh.teamup.domain.team.Team
 import java.util.*
 
 
-open class Start(override val message: String, context: ChatContext, chatId: String) : TeamUpState(message, context, chatId) {
+open class Start(override val message: String, context: TeamUpChatContext, chatId: String) : TeamUpState(message, context, chatId) {
+    override fun isAllowed(command: String) = true
+
     override fun nextOrNull(command: String, parameter: String?): TeamUpState? {
-        return when(command) {
+        return when (command) {
             "team" -> findObject(parameter, Team.Companion::get, ::teamChosen) {
                 ChooseTeam(parameter, this)
             }
@@ -33,10 +33,12 @@ open class Start(override val message: String, context: ChatContext, chatId: Str
     }
 }
 
-class IllegalParameter(parameter: String?, prev: TeamUpState): Start("Illegal parameter for state ${prev.javaClass.simpleName}: $parameter", prev.context, prev.chatId)
+class IllegalParameter(parameter: String?, prev: TeamUpState) : Start("Illegal parameter for state ${prev.javaClass.simpleName}: $parameter", prev.context, prev.chatId)
 
 class ChooseEvent(badName: String?, prev: TeamUpState) :
-        MessageReceiverState("Give me event name better than \"${badName.orEmpty()}\"", prev) {
+    MessageReceiverState("Give me event name better than \"${badName.orEmpty()}\"", prev) {
+    override fun isAllowed(command: String) = true
+
     override fun getCommands(): List<String> = emptyList()
 
     override fun successState(parameter: String?): TeamUpState {
@@ -49,8 +51,16 @@ class ChooseEvent(badName: String?, prev: TeamUpState) :
 }
 
 class ChooseTeam(badName: String?, prev: TeamUpState) :
-        MessageReceiverState("Give me team name better than \"${badName.orEmpty()}\"", prev) {
-    override fun getCommands(): List<String> = emptyList()
+    MessageReceiverState("Give me team name better than \"${badName.orEmpty()}\"", prev) {
+    override fun isAllowed(command: String) = true
+
+    override fun getCommands(): List<String> = listOf("newteam")
+
+    override fun forCommand(command: String, parameter: String?): TeamUpState? {
+        return if (command.equals("newTeam", ignoreCase = true)) {
+            CreateTeam(this)
+        } else null
+    }
 
     override fun successState(parameter: String?): TeamUpState {
         return findObject(parameter, Team.Companion::get, this::teamChosen) {
@@ -61,9 +71,24 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
     fun teamChosen(it: Team) = TeamChosen(it, this)
 }
 
+class CreateTeam(prev: TeamUpState) :
+    MessageReceiverState("Choose a name for the new team", prev) {
+    override fun isAllowed(command: String) = true
+    override fun getCommands(): List<String> = listOf()
+
+    override fun successState(parameter: String?): TeamUpState {
+        return if (parameter == null) Start("can't create empty-named team", context, chatId) else {
+            val starter = context.adressent?.username ?: "Nobody"
+            val team = Team(parameter, starter)
+            team.save()
+            TeamChosen(team, this)
+        }
+    }
+}
+
 
 abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: String, prev: TeamUpState) :
-        TeamUpState(answer, prev) {
+    TeamUpState(answer, prev) {
     override fun nextOrNull(command: String, parameter: String?): TeamUpState? {
         return forCommand("hire", command, parameter, Person.Companion::get) {
             hire(it)
@@ -97,15 +122,24 @@ abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: St
 }
 
 class TeamChosen(val team: Team, val prev: TeamUpState) :
-        PartyChosen<Team>(team, "Team chosen: ${team.toJson()}", prev) {
+    PartyChosen<Team>(team, "Team chosen: ${team.toJson()}", prev) {
     override fun instance(party: Team): PartyChosen<*> {
         return TeamChosen(party, prev)
     }
 
+    override fun isAllowed(command: String): Boolean {
+        return when(command){
+            "hirelegio", "fireLegio", "fire", "hire" -> isTeamAdmin()
+            else -> true
+        }
+    }
+
+    private fun isTeamAdmin() = team.admin == context.adressent?.username
+
     override fun nextOrNull(command: String, parameter: String?): TeamUpState? {
         return super.nextOrNull(command, parameter)
-                ?: forCommand("hirelegio", command, parameter, { Person.get(it) }, { hirelegio(it) })
-                ?: forCommand("firelegio", command, parameter, { Person.get(it) }, { firelegio(it) })
+            ?: forCommand("hirelegio", command, parameter, { Person.get(it) }, { hirelegio(it) })
+            ?: forCommand("firelegio", command, parameter, { Person.get(it) }, { firelegio(it) })
     }
 
     fun hirelegio(person: Person): TeamUpState {
@@ -124,24 +158,30 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
 }
 
 class EventChosen(val event: Event, val prev: TeamUpState) :
-        PartyChosen<Event>(event, "Event chosen: ${event.toJson()}", prev) {
+    PartyChosen<Event>(event, "Event chosen: ${event.toJson()}", prev) {
+    override fun isAllowed(command: String) = true
     override fun instance(party: Event): PartyChosen<*> {
         return EventChosen(event, prev)
     }
 }
 
 abstract class MessageReceiverState(message: String, prev: TeamUpState) :
-        TeamUpState(message, prev) {
+    TeamUpState(message, prev) {
 
     override fun nextOrNull(command: String, parameter: String?): TeamUpState? {
-        return if (command == "") successState(parameter) else null
+        return if (command == "") successState(parameter) else forCommand(command, parameter)
     }
+
+    open fun forCommand(command: String, parameter: String?): TeamUpState? = null
 
     abstract fun successState(parameter: String?): TeamUpState
 }
 
 class Rename(val party: Party<*>, prev: TeamUpState) :
-        MessageReceiverState("Rename ${party.name}", prev) {
+    MessageReceiverState("Rename ${party.name}", prev) {
+
+    override fun isAllowed(command: String) = true
+
     override fun getCommands(): List<String> = emptyList()
 
     override fun successState(parameter: String?): TeamUpState {

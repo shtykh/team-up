@@ -1,21 +1,23 @@
 package shtykh.teamup.controller
 
-import com.github.ivan_osipov.clabo.state.chat.ChatContext
 import com.github.ivan_osipov.clabo.state.chat.ChatState
 
-abstract class TeamUpState(open val message: String, context: ChatContext, chatId: String) : ChatState<ChatContext>(chatId, context) {
+abstract class TeamUpState(open val message: String, context: TeamUpChatContext, chatId: String) : ChatState<TeamUpChatContext>(chatId, context) {
     constructor(message: String, prev: TeamUpState) : this(message, prev.context, prev.chatId)
 
     fun next(command: String?, parameter: String?): TeamUpState {
         val internalCommand = command ?: ""
+        if(! isAllowed(internalCommand)) return Start("${context.adressent?.username} is not allowed to perform /$command", context, chatId)
         return nextOrNull(internalCommand, parameter)
                 ?: Start("Invalid command \"$command\" for state ${this::class.java.simpleName}", context, chatId)
     }
 
+    abstract fun isAllowed(command: String): Boolean
+
     fun answer(): String {
         val commandString = getCommands()
                 .takeIf { it.isNotEmpty() }
-                ?.map { Commands.get(it, Commands::forStart) }
+                ?.map { Commands.get(it, Commands::forHelp) }
                 ?.reduce { fi, se -> "$fi\n$se" }
                 .orEmpty()
         return "$message\n" + commandString

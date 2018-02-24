@@ -2,13 +2,13 @@ package shtykh.teamup.controller
 
 import com.github.ivan_osipov.clabo.api.model.Message
 import com.github.ivan_osipov.clabo.api.model.Update
+import com.github.ivan_osipov.clabo.api.model.User
 import com.github.ivan_osipov.clabo.dsl.bot
 import com.github.ivan_osipov.clabo.dsl.props
 import com.github.ivan_osipov.clabo.state.chat.ChatStateStore
 import com.github.ivan_osipov.clabo.state.chat.StaticChatContext
 import com.github.ivan_osipov.clabo.utils.ChatId
 import shtykh.teamup.controller.Commands.forHelp
-import shtykh.teamup.controller.Commands.forStart
 
 val botProperties = props(TeamUpState::class, "bot.properties")
 
@@ -71,6 +71,7 @@ class TeamUpChatStore(var answerFunction: (Message?, String) -> Unit) : ChatStat
 class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -> Unit) : StaticChatContext() {
 
     var state: TeamUpState
+    var adressent: User? = null
 
     init {
         this.state = Start("start", this, chatId)
@@ -79,6 +80,7 @@ class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -
 
     fun answer(command: String? = null): (Message, Update) -> Unit = { message, update ->
         run {
+            adressent = message.from
             val newState = state.next(command, message.text)
             state = newState
             answerFunction.invoke(update.message, state.answer())
