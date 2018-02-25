@@ -8,7 +8,8 @@ import com.github.ivan_osipov.clabo.dsl.props
 import com.github.ivan_osipov.clabo.state.chat.ChatStateStore
 import com.github.ivan_osipov.clabo.state.chat.StaticChatContext
 import com.github.ivan_osipov.clabo.utils.ChatId
-import shtykh.teamup.controller.Commands.forHelp
+import shtykh.teamup.controller.state.Start
+import shtykh.teamup.controller.state.TeamUpState
 
 val botProperties = props(TeamUpState::class, "bot.properties")
 
@@ -44,7 +45,7 @@ fun main(args: Array<String>) {
 
         onHelp {
             println("Help with ${it.update.message?.from?.username}")
-            it.update.message answer forHelp()
+            it.update.message answer Command.forHelp()
         }
 
         onSettings {
@@ -83,7 +84,7 @@ class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -
             adressent = message.from
             val newState = state.next(command, message.text)
             state = newState
-            answerFunction.invoke(update.message, state.answer())
+            answerFunction(update.message, state.answer())
         }
     }
 }
