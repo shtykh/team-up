@@ -5,6 +5,8 @@ import shtykh.teamup.controller.Command
 import shtykh.teamup.domain.Manageble
 import shtykh.teamup.domain.Party
 import shtykh.teamup.domain.Person
+import shtykh.teamup.domain.event.Event
+import shtykh.teamup.domain.team.Team
 import java.util.*
 
 abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: String, prev: TeamUpState) :
@@ -17,21 +19,26 @@ abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: St
         }
     }
 
-    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
+    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
         return when (command) {
-            Command("hire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { fire(it) })
-            Command("fire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { hire(it) })
+            Command("hire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { hire(it.id) }, stateByParameter = { hire(it)})
+            Command("fire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { fire(it.id) }, stateByParameter = { fire(it)})
             Command("rename") -> Rename(party, this)
             else -> null
         }
     }
 
-    private fun hire(person: Person): TeamUpState {
-        return instance(party.instance() hire person)
+
+    private fun hire(personId: String?): TeamUpState {
+        return personId?.let {
+            return instance(party.instance() hire it)
+        } ?: ErrorState("Can't hire empty person", this)
     }
 
-    private fun fire(person: Person): TeamUpState {
-        return instance(party.instance() fire person)
+    private fun fire(personId: String?): TeamUpState {
+        return personId?.let {
+            return instance(party.instance() fire it)
+        } ?: ErrorState("Can't fire empty person", this)
     }
 
     fun setName(name: String): TeamUpState {
@@ -40,7 +47,7 @@ abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: St
     }
 
     override fun getCommandNames(): List<String> {
-        return Arrays.asList("hire, fire, setName, help")
+        return Arrays.asList("hire, fire, setName")
     }
 
     abstract fun instance(party: T): PartyChosen<*>
@@ -48,16 +55,19 @@ abstract class PartyChosen<T : Party<T>>(private val party: Party<T>, answer: St
 
 fun User?.isAdmin(party: Party<*>) = (party is Manageble) && (party.admin == this?.username)
 
-class Rename(private val party: Party<*>, prev: TeamUpState) :
+class Rename<out T: Party<T>>(private val party: Party<T>, prev: TeamUpState) :
     MessageReceiverState("Rename ${party.name}", prev) {
 
     override fun isAllowed(command: Command) = true
 
     override fun getCommandNames(): List<String> = emptyList()
 
-    override fun successState(parameter: String?): TeamUpState {
-        val oldName = party.name
-        party.name = parameter ?: oldName
-        return Start("$oldName was renamed to ${party.name}", context, chatId)
+    override fun successState(parameter: String): TeamUpState? {
+        party.name = parameter
+        return when(party) {
+            is Team -> TeamChosen(party, this)
+            is Event -> EventChosen(party, this)
+            else -> null
+        }
     }
 }

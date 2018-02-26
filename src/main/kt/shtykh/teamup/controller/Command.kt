@@ -4,8 +4,12 @@ import com.github.ivan_osipov.clabo.dsl.props
 
 val commands = props(Command::class, "commands.properties")
 
-class Command(_value: String = "") {
-    var value: String = _value
+class Command {
+    constructor(_value: String = "") {
+        this.value = _value
+    }
+
+    var value: String
         set(value) {
             field = value.toLowerCase()
         }

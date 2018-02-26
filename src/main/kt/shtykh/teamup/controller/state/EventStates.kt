@@ -16,8 +16,8 @@ class ChooseEvent(badName: String?, prev: TeamUpState) :
         }
     }
 
-    override fun successState(parameter: String?): TeamUpState {
-        return findObject(parameter, Event.Companion::get, this::eventChosen) {
+    override fun successState(parameter: String): TeamUpState {
+        return findObject(parameter, { Event.get(it) }, this::eventChosen) {
             ChooseEvent(parameter, this)
         }
     }
@@ -30,8 +30,8 @@ class CreateEvent(prev: TeamUpState) :
     override fun isAllowed(command: Command) = true
     override fun getCommandNames(): List<String> = listOf()
 
-    override fun successState(parameter: String?): TeamUpState {
-        return if (parameter == null) Start("can't create empty-named event", context, chatId) else {
+    override fun successState(parameter: String): TeamUpState {
+        return run {
             val adressent = context.adressent?.username ?: "Nobody"
             val event = Event(parameter, admin = adressent)
             event.save()

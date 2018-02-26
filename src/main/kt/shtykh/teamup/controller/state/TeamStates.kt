@@ -17,7 +17,7 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
         }
     }
 
-    override fun successState(parameter: String?): TeamUpState {
+    override fun successState(parameter: String): TeamUpState {
         return findObject(parameter, Team.Companion::get, this::teamChosen) {
             ChooseTeam(parameter, this)
         }
@@ -31,8 +31,8 @@ class CreateTeam(prev: TeamUpState) :
     override fun isAllowed(command: Command) = true
     override fun getCommandNames(): List<String> = listOf()
 
-    override fun successState(parameter: String?): TeamUpState {
-        return if (parameter == null) Start("can't create empty-named team", context, chatId) else {
+    override fun successState(parameter: String): TeamUpState {
+        return run {
             val starter = context.adressent?.username ?: "Nobody"
             val team = Team(parameter, starter)
             team.save()
@@ -54,22 +54,34 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
         }
     }
 
-    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
+    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
         return super.nextOrNull(command, parameter) ?: when (command) {
-            Command("hireLegio") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { hirelegio(it) })
-            Command("firelegio") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { firelegio(it) })
+            Command("hireLegio") -> findObject(
+                key = parameter,
+                objectByKey = { Person.get(it) },
+                stateByObject = { hireLegio(it.id) },
+                stateByParameter = { hireLegio(it) }
+            )
+            Command("firelegio") -> findObject(
+                key = parameter,
+                objectByKey = { Person.get(it) },
+                stateByObject = { fireLegio(it.id) },
+                stateByParameter = { fireLegio(it) }
+            )
             else -> null
         }
     }
 
-    fun hirelegio(person: Person): TeamUpState {
-        team.legio hire person
-        return TeamChosen(team, this)
+    private fun hireLegio(personId: String?): TeamUpState {
+        return personId?.let {
+            return TeamChosen(team.also { it.legio hire personId }, prev)
+        } ?: Start("Can't hire empty person as legio", context, chatId)
     }
 
-    fun firelegio(person: Person): TeamUpState {
-        team.legio fire person
-        return TeamChosen(team, this)
+    private fun fireLegio(personId: String?): TeamUpState {
+        return personId?.let {
+            return TeamChosen(team.also { it.legio fire personId }, prev)
+        } ?: Start("Can't fire empty person as legio", context, chatId)
     }
 
     override fun getCommandNames(): List<String> {

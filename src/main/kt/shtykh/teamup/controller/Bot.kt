@@ -77,14 +77,14 @@ class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -
     var adressent: User? = null
 
     init {
-        this.state = Start("start", this, chatId)
+        this.state = Start("Choose the domain to work with:", this, chatId)
         messageCallbacks.add(this.answer())
     }
 
-    fun answer(command: String? = null): (Message, Update) -> Unit = { message, update ->
+    fun answer(command: String = ""): (Message, Update) -> Unit = { message, update ->
         run {
             adressent = message.from
-            val newState = state.next(command, message.text)
+            val newState = state.next(command, message)
             state = newState
             answerFunction(update.message, state.answer())
         }
