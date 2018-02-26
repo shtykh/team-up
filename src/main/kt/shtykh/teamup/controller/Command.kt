@@ -4,19 +4,35 @@ import com.github.ivan_osipov.clabo.dsl.props
 
 val commands = props(Command::class, "commands.properties")
 
-class Command(private var _value: String = "") {
-    var value: String
+class Command(_value: String = "") {
+    var value: String = _value
         set(value) {
-            value.toLowerCase()
+            field = value.toLowerCase()
         }
-        get() = _value
+
+    override fun toString(): String {
+        return "Command($value)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Command) return false
+
+        if (value != other.value) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return value.hashCode()
+    }
 
     companion object {
-        fun forBotFather() : String {
+        fun forBotFather(): String {
             return reduce(this::forBotFatherMapper)
         }
 
-        internal fun forHelp() : String {
+        internal fun forHelp(): String {
             return reduce(this::forHelpMapper)
         }
 

@@ -11,7 +11,9 @@ import com.github.ivan_osipov.clabo.utils.ChatId
 import shtykh.teamup.controller.state.Start
 import shtykh.teamup.controller.state.TeamUpState
 
-val botProperties = props(TeamUpState::class, "bot.properties")
+val botProperties = props(Main::class, "bot.properties")
+
+class Main
 
 fun main(args: Array<String>) {
     bot(botProperties) longPolling {
