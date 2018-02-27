@@ -20,9 +20,8 @@ fun main(args: Array<String>) {
         val chatStore = TeamUpChatStore { message, s -> message answer s} // gross
 
         configure {
-            helloMessage("Hello! I'm Bot based on commands. Write '/'")
             updates {
-                timeout = 3000
+                timeout = 300
             }
         }
 
@@ -39,10 +38,14 @@ fun main(args: Array<String>) {
         }
 
         onStart {
-            println("Start with ${it.update.message?.from?.username}")
-            chatStore.getChatContext(it.message.migrateToChatId ?: "default")
-            val chatContext = chatStore.getChatContext(it.message.chat.id)
-            it.update.message answer chatContext.state.answer()
+            if (it.message.from?.username == "shtykh") {
+                println("Start with ${it.update.message?.from?.username}")
+                chatStore.getChatContext(it.message.migrateToChatId ?: "default")
+                val chatContext = chatStore.getChatContext(it.message.chat.id)
+                it.update.message answer chatContext.start().answer()
+            } else {
+                it.update.message answer "It's out of service now, sorry."
+            }
         }
 
         onHelp {
@@ -71,13 +74,13 @@ class TeamUpChatStore(var answerFunction: (Message?, String) -> Unit) : ChatStat
     }
 }
 
-class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -> Unit) : StaticChatContext() {
+class TeamUpChatContext(var chatId: ChatId, var answerFunction: (Message?, String) -> Unit) : StaticChatContext() {
 
     var state: TeamUpState
     var adressent: User? = null
 
     init {
-        this.state = Start("Choose the domain to work with:", this, chatId)
+        state = start()
         messageCallbacks.add(this.answer())
     }
 
@@ -88,6 +91,11 @@ class TeamUpChatContext(chatId: ChatId, var answerFunction: (Message?, String) -
             state = newState
             answerFunction(update.message, state.answer())
         }
+    }
+
+    fun start(): TeamUpState {
+        this.state = Start("Choose the domain to work with:", this, chatId)
+        return this.state
     }
 }
 

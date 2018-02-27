@@ -8,7 +8,7 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
     MessageReceiverState("Give me team name better than \"$badName\"", prev) {
     override fun isAllowed(command: Command) = true
 
-    override fun getCommandNames(): List<String> = listOf("newteam")
+    override fun getCommandNames(): List<String> = listOf("newteam", *Team.directory.cache.keys.toTypedArray())
 
     override fun forCommand(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
@@ -49,12 +49,12 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
 
     override fun isAllowed(command: Command): Boolean {
         return super.isAllowed(command) and when (command) {
-            Command("hireLegio"), Command("fireLegio") -> context.adressent.isAdmin(team)
+            Command("hirelegio"), Command("firelegio") -> context.adressent.isAdmin(team)
             else -> true
         }
     }
 
-    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
+    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return super.nextOrNull(command, parameter) ?: when (command) {
             Command("hireLegio") -> findObject(
                 key = parameter,
@@ -85,6 +85,6 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
     }
 
     override fun getCommandNames(): List<String> {
-        return listOf("hire", "fire", "hireLegio", "fireLegio", "setName", "help")
+        return super.getCommandNames() + listOf("hireLegio", "fireLegio")
     }
 }

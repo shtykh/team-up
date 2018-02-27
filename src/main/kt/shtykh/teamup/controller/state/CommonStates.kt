@@ -14,15 +14,12 @@ abstract class TeamUpState(open val message: String, context: TeamUpChatContext,
 
     fun next(commandString: String, message: Message): TeamUpState {
         val command = Command(commandString)
-        val parameter = parameter(message, commandString)
-        return when(command) {
-            Command("start") -> Start("${this.javaClass.simpleName} is aborted", context, chatId)
-            else -> if(!isAllowed(command)) {
-                Start("${context.adressent?.username} is not allowed to perform /$commandString", context, chatId)
-            } else {
-                nextOrNull(command, parameter.orEmpty())
-                    ?: ErrorState("Invalid command \"$commandString\" for state ${this::class.java.simpleName}", this)
-            }
+        val parameter = parameter(message, commandString)?.takeIf { it.isNotBlank() }
+        return if(!isAllowed(command)) {
+            ErrorState("${context.adressent?.username} is not allowed to perform /$commandString on $this", this)
+        } else {
+            nextOrNull(command, parameter)
+                ?: ErrorState("Invalid command \"$commandString\" for state ${this::class.java.simpleName}", this)
         }
     }
 
@@ -45,14 +42,14 @@ abstract class TeamUpState(open val message: String, context: TeamUpChatContext,
 
     abstract fun getCommandNames(): List<String>
 
-    abstract fun nextOrNull(command: Command, parameter: String): TeamUpState?
+    abstract fun nextOrNull(command: Command, parameter: String?): TeamUpState?
 
-    fun <T> findObject(key: String,
+    fun <T> findObject(key: String?,
                        objectByKey: (String) -> T?,
                        stateByObject: (T) -> TeamUpState = { Start("Illegal call for ${this.javaClass.simpleName} as $it", context, chatId) },
                        stateByParameter: (String?) -> TeamUpState = { objectNotFound(it) })
         : TeamUpState {
-        val obj = objectByKey(key)
+        val obj = key?.let{ objectByKey(it) }
         return if (obj != null) {
             stateByObject(obj)
         } else {
@@ -70,7 +67,7 @@ abstract class TeamUpState(open val message: String, context: TeamUpChatContext,
 open class Start(override val message: String, context: TeamUpChatContext, chatId: String) : TeamUpState(message, context, chatId) {
     override fun isAllowed(command: Command) = true
 
-    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
+    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
             Command("team") -> findObject(parameter, { Team.get(it) }, { TeamChosen(it, this) }) {
                 ChooseTeam(parameter, this)
@@ -93,8 +90,10 @@ open class Start(override val message: String, context: TeamUpChatContext, chatI
 abstract class MessageReceiverState(message: String, prev: TeamUpState) :
     TeamUpState(message, prev) {
 
-    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
-        return if (command == Command()) successState(parameter) else forCommand(command, parameter)
+    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
+        return if (command == Command()) parameter?.let {successState(parameter) } else {
+            forCommand(command, parameter)?: nextOrNull(Command(), command.value)
+        }
     }
 
     open fun forCommand(command: Command, parameter: String?): TeamUpState? = null

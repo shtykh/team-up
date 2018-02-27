@@ -43,7 +43,7 @@ class CreatePerson(prev: TeamUpState) :
 class PersonChosen(val person: Person, prev: TeamUpState) :
     TeamUpState("Person chosen: ${person.toJson()}", prev) {
 
-    override fun nextOrNull(command: Command, parameter: String): TeamUpState? {
+    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
             Command("editJson"), Command("newPerson") -> EditJson(person, this)
             else -> error(command, person, parameter)

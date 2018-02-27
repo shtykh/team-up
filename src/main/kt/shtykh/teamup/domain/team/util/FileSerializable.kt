@@ -13,8 +13,9 @@ interface FileSerializable: Jsonable {
         return file(directoryFile(), fileName())
     }
 
-    fun save() {
+    fun save(): FileSerializable {
         directory().put(this)
+        return this
     }
 
     fun directory(): Directory<FileSerializable>
