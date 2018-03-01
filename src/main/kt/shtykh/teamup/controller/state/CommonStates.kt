@@ -9,33 +9,42 @@ import shtykh.teamup.domain.event.Event
 import shtykh.teamup.domain.team.Team
 import shtykh.teamup.domain.team.util.Jsonable
 
-abstract class TeamUpState(open val message: String, context: TeamUpChatContext, chatId: String) : ChatState<TeamUpChatContext>(chatId, context) {
-    constructor(message: String, prev: TeamUpState) : this(message, prev.context, prev.chatId)
+abstract class TeamUpState(open val message: String = "", open val prev: TeamUpState? = null, context: TeamUpChatContext, chatId: String) : ChatState<TeamUpChatContext>(chatId, context) {
+    constructor(message: String, prev: TeamUpState) : this(message, prev, prev.context, prev.chatId)
 
     fun next(commandString: String, message: Message): TeamUpState {
-        val command = Command(commandString)
-        val parameter = parameter(message, commandString)?.takeIf { it.isNotBlank() }
-        return if(!isAllowed(command)) {
-            ErrorState("${context.adressent?.username} is not allowed to perform /$commandString on $this", this)
-        } else {
-            nextOrNull(command, parameter)
-                ?: ErrorState("Invalid command \"$commandString\" for state ${this::class.java.simpleName}", this)
+        try {
+            val command = Command(commandString)
+            val parameter = parameter(message, commandString)?.takeIf { it.isNotBlank() }
+            return if (!isAllowed(command)) {
+                ErrorState("${context.adressent?.username} is not allowed to perform /$commandString on $this", this)
+            } else when(command) {
+                    Command("start") -> return Start("", context, chatId)
+                    Command("back") -> return prev!!
+                    else -> nextOrNull(command, parameter)
+                        ?: ErrorState("Invalid command \"$commandString\" for state ${this::class.java.simpleName}", this)
+            }
+
+        } catch (ex: Exception) {
+            return ErrorState(ex.message?: "Error", this)
         }
     }
 
-    private fun parameter(message: Message, command: String?) = if (command.orEmpty().isBlank()) {
-        message.text
-    } else {
-        message.text?.removePrefix("/$command")?.removePrefix(" ")
+    private fun parameter(message: Message, command: String?): String? = command?.let {
+        return if (it.isBlank()) {
+            message.text
+        } else {
+            message.text?.substring(it.length + 1, message.text?.length ?: 0)
+        }
     }
 
     fun answer(): String {
-        val commandString = getCommandNames()
+        val commandString = (getCommandNames() + listOf("", "start", "back"))
             .takeIf { it.isNotEmpty() }
             ?.map { Command.get(it, Command.Companion::forHelpMapper) }
             ?.reduce { fi, se -> "$fi\n$se" }
             .orEmpty()
-        return "${this.javaClass.simpleName}: $message\n" + commandString
+        return "${this.javaClass.simpleName}:\n$message\n\n" + commandString
     }
 
     abstract fun isAllowed(command: Command): Boolean
@@ -64,7 +73,7 @@ abstract class TeamUpState(open val message: String, context: TeamUpChatContext,
             "with ${parameter.map { it.toString() }.reduce { acc, s -> acc + ", " + s }}", this)
 }
 
-open class Start(override val message: String, context: TeamUpChatContext, chatId: String) : TeamUpState(message, context, chatId) {
+open class Start(override val message: String = "", context: TeamUpChatContext, chatId: String): TeamUpState(message, null, context, chatId) {
     override fun isAllowed(command: Command) = true
 
     override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {

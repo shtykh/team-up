@@ -44,8 +44,8 @@ class EventTest {
     @Test
     fun hire() {
         val theBeatles = theBeatles()
-        hamburg.teamName = theBeatles.name
-        Assert.assertEquals(theBeatles.name, hamburg.teamName)
+        hamburg.teamId = theBeatles.id
+        Assert.assertEquals(theBeatles.id, hamburg.teamId)
         hamburg.hireAll(john, paul, george, pete, stewart)
         Assert.assertEquals(5, hamburg.members.size)
         hamburg hire george hire george hire george hire george hire george // duplicated people are ignored

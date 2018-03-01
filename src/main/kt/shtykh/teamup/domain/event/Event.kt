@@ -8,12 +8,11 @@ import java.io.File
 import java.io.InvalidObjectException
 import java.util.*
 
-class Event(override var name: String = "Event", var capacity: Int = 6, override var admin: String = "nobody") : Party<Event>(name), FileSerializable, Manageble {
+class Event(override var name: String = "Event", var capacity: Int = 6, override var admin: String = "nobody", var teamId: String = "no one") : Party<Event>(name), FileSerializable, Manageble {
 
     var description: String? = null
     var time: Date? = null
     var place: String? = null
-    var teamName: String? = null
 
     override fun managers(): MutableList<String> = members
 
@@ -41,7 +40,7 @@ class Event(override var name: String = "Event", var capacity: Int = 6, override
     }
 
     override fun toString(): String {
-        return "Event(name='$name', capacity=$capacity, description=$description, time=$time, place=$place, teamName=$teamName)"
+        return "Event(name='$name', capacity=$capacity, description=$description, time=$time, place=$place, teamId=$teamId)"
     }
 
 
@@ -54,8 +53,8 @@ class Event(override var name: String = "Event", var capacity: Int = 6, override
     }
 }
 
-class EventDirectory : Directory<FileSerializable>() {
+class EventDirectory(override var dir: File = FileSerializable.dir("Event")) : Directory<FileSerializable>(dir) {
     override fun load(key: String): Event {
-        return FileSerializable.load(FileSerializable.file(FileSerializable.dir("Event"), key))
+        return FileSerializable.load(FileSerializable.file(dir, key))
     }
 }

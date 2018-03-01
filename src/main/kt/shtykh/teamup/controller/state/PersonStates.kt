@@ -7,11 +7,12 @@ class ChoosePerson(badName: String?, prev: TeamUpState) :
     MessageReceiverState("Give me person name better than \"$badName\"", prev) {
     override fun isAllowed(command: Command) = true
 
-    override fun getCommandNames(): List<String> = listOf("newperson")
+    override fun getCommandNames(): List<String> = listOf("newPerson", *Person.directory.cache.keys.toTypedArray())
+
 
     override fun forCommand(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
-            Command("newperson") -> CreatePerson(this)
+            Command("newPerson") -> CreatePerson(this)
             else -> null
         }
     }
@@ -41,11 +42,12 @@ class CreatePerson(prev: TeamUpState) :
 }
 
 class PersonChosen(val person: Person, prev: TeamUpState) :
-    TeamUpState("Person chosen: ${person.toJson()}", prev) {
+    TeamUpState(person.toJson(), prev) {
 
     override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
-            Command("editJson"), Command("newPerson") -> EditJson(person, this)
+            Command("editJson") -> EditJson(person.also { it.save() }, this)
+            Command("newPerson") -> CreatePerson(this)
             else -> error(command, person, parameter)
         }
     }

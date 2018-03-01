@@ -2,6 +2,7 @@ package shtykh.teamup.domain.team.util
 
 import shtykh.teamup.domain.util.Util
 import java.io.File
+import java.io.FileFilter
 
 interface FileSerializable: Jsonable {
 
@@ -40,11 +41,19 @@ interface FileSerializable: Jsonable {
 }
 
 abstract class Directory<T : FileSerializable> {
+    open var dir: File
     val cache: MutableMap<String, T> = HashMap()
 
-    abstract fun load(key: String): T
+    constructor(dir: File) {
+        this.dir = dir
+        dir.listFiles(FileFilter { it.name.endsWith(".json") })?.forEach {
+            put(load(it.name.removeSuffix(".json")))
+        }
+    }
 
-    fun save(value: T): File {
+    protected abstract fun load(key: String): T
+
+    private fun save(value: T): File {
         val file = value.file()
         Util.write(file, value.toJson())
         return file
@@ -62,8 +71,8 @@ abstract class Directory<T : FileSerializable> {
         val key = value.fileName()
         if (cache[key] != value) {
             cache[key] = value
-            save(value)
         }
+        save(value)
     }
 
     fun clearCache() {

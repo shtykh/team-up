@@ -1,1 +1,11 @@
-{"id":"Going_Hamburg","name":"Going Hamburg","members":["john","paul","george","pete","stewart"],"description":"Hamburg trip","time":-293122787252,"place":"Indra Club","teamName":"The Beatles","capacity":6,"admin":"paul"}
+{
+  "id" : "Going_Hamburg",
+  "name" : "Going Hamburg",
+  "members" : [ "john", "paul", "george", "pete", "stewart" ],
+  "description" : "Hamburg trip",
+  "time" : -293122799051,
+  "place" : "Indra Club",
+  "capacity" : 6,
+  "admin" : "paul",
+  "teamId" : "The_Beatles"
+}

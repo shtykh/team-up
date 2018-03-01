@@ -4,6 +4,7 @@ import shtykh.teamup.domain.team.util.Directory
 import shtykh.teamup.domain.team.util.FileSerializable
 import shtykh.teamup.domain.team.util.FileSerializable.Companion.dir
 import shtykh.teamup.domain.team.util.FileSerializable.Companion.file
+import shtykh.teamup.domain.team.util.FileSerializable.Companion.load
 import java.io.File
 
 class Person(val id: String = "", var name: String = "John Doe") : FileSerializable {
@@ -53,8 +54,9 @@ class Person(val id: String = "", var name: String = "John Doe") : FileSerializa
     }
 }
 
-class PersonDirectory : Directory<FileSerializable>() {
+class PersonDirectory(dir: File = FileSerializable.dir("Person")) : Directory<FileSerializable>(dir) {
     override fun load(key: String): Person {
-        return FileSerializable.load(file(dir("Person"), key))
+        return FileSerializable.load(file(dir, key))
     }
 }
+

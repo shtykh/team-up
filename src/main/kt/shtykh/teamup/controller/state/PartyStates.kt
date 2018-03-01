@@ -10,8 +10,17 @@ import shtykh.teamup.domain.team.Team
 import shtykh.teamup.domain.team.util.FileSerializable
 import java.util.*
 
-abstract class PartyChosen<T : Party<T>>(val party: Party<T>, answer: String, prev: TeamUpState) :
-    TeamUpState(answer, prev) {
+abstract class PartyChosen<T : Party<T>> :
+    TeamUpState {
+
+    val party: Party<T>
+
+    constructor(party: Party<T>, answer: String, prev: TeamUpState) : super(answer, prev) {
+        this.party = party
+        when(party) {
+            is FileSerializable -> party.save()
+        }
+    }
 
     override fun isAllowed(command: Command): Boolean {
         return when (command) {
@@ -55,26 +64,26 @@ abstract class PartyChosen<T : Party<T>>(val party: Party<T>, answer: String, pr
     }
 
     override fun getCommandNames(): List<String> {
-        return Arrays.asList("save", "hire", "fire", "setName")
+        return Arrays.asList("hire", "fire", "setName")
     }
 
     abstract fun instance(party: T): PartyChosen<*>
 }
 
-class Hire<T: Party<T>>(val party: Party<T>, val prev: PartyChosen<T>) : MessageReceiverState("Give me person's id", prev) {
+open class Hire<T: Party<T>>(open val party: Party<T>, override val prev: PartyChosen<T>) : MessageReceiverState("Give me person's id", prev) {
     override fun isAllowed(command: Command): Boolean = true
 
-    override fun getCommandNames(): List<String> = listOf()
+    override fun getCommandNames(): List<String> = listOf(*Person.directory.cache.keys.toTypedArray())
 
     override fun successState(parameter: String): TeamUpState? {
-        return prev.instance(party hire parameter)
+        return prev.instance((party hire parameter))
     }
 }
 
-class Fire<T: Party<T>>(val party: Party<T>, val prev: PartyChosen<T>) : MessageReceiverState("Give me person's id", prev) {
+open class Fire<T: Party<T>>(open val party: Party<T>, override val prev: PartyChosen<T>) : MessageReceiverState("Give me person's id", prev) {
     override fun isAllowed(command: Command): Boolean = true
 
-    override fun getCommandNames(): List<String> = listOf()
+    override fun getCommandNames(): List<String> = listOf(*(party.members).toTypedArray())
 
     override fun successState(parameter: String): TeamUpState? {
         return prev.instance(party fire parameter)

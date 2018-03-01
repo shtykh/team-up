@@ -1,1 +1,6 @@
-{"tel":null,"email":null,"id":"john","name":"John Lennon"}
+{
+  "tel" : null,
+  "email" : null,
+  "id" : "john",
+  "name" : "John Lennon"
+}

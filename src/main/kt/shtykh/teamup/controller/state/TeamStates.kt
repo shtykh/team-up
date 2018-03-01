@@ -8,7 +8,7 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
     MessageReceiverState("Give me team name better than \"$badName\"", prev) {
     override fun isAllowed(command: Command) = true
 
-    override fun getCommandNames(): List<String> = listOf("newteam", *Team.directory.cache.keys.toTypedArray())
+    override fun getCommandNames(): List<String> = listOf("newTeam", *Team.directory.cache.keys.toTypedArray())
 
     override fun forCommand(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
@@ -18,12 +18,10 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
     }
 
     override fun successState(parameter: String): TeamUpState {
-        return findObject(parameter, Team.Companion::get, this::teamChosen) {
+        return findObject(parameter, Team.Companion::get, { TeamChosen(it, this) }) {
             ChooseTeam(parameter, this)
         }
     }
-
-    fun teamChosen(it: Team) = TeamChosen(it, this)
 }
 
 class CreateTeam(prev: TeamUpState) :
@@ -41,22 +39,22 @@ class CreateTeam(prev: TeamUpState) :
     }
 }
 
-class TeamChosen(val team: Team, val prev: TeamUpState) :
-    PartyChosen<Team>(team, "Team chosen: ${team.toJson()}", prev) {
+class TeamChosen(val team: Team, override val prev: TeamUpState) :
+    PartyChosen<Team>(team, team.toJson(), prev) {
     override fun instance(party: Team): PartyChosen<*> {
         return TeamChosen(party, prev)
     }
 
     override fun isAllowed(command: Command): Boolean {
         return super.isAllowed(command) and when (command) {
-            Command("hirelegio"), Command("firelegio") -> context.adressent.isAdmin(team)
+            Command("hireLegio"), Command("fireLegio") -> context.adressent.isAdmin(team)
             else -> true
         }
     }
 
     override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return super.nextOrNull(command, parameter) ?: when (command) {
-            Command("hireLegio") -> findObject(
+            Command("hirelegio") -> findObject(
                 key = parameter,
                 objectByKey = { Person.get(it) },
                 stateByObject = { hireLegio(it.id) },
@@ -68,6 +66,7 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
                 stateByObject = { fireLegio(it.id) },
                 stateByParameter = { fireLegio(it) }
             )
+            Command("newevent") -> CreateEvent(team, this)
             else -> null
         }
     }
@@ -75,16 +74,31 @@ class TeamChosen(val team: Team, val prev: TeamUpState) :
     private fun hireLegio(personId: String?): TeamUpState {
         return personId?.let {
             return TeamChosen(team.also { it.legio hire personId }, prev)
-        } ?: Start("Can't hire empty person as legio", context, chatId)
+        } ?: HireLegio(team, this)
     }
 
     private fun fireLegio(personId: String?): TeamUpState {
         return personId?.let {
             return TeamChosen(team.also { it.legio fire personId }, prev)
-        } ?: Start("Can't fire empty person as legio", context, chatId)
+        } ?: FireLegio(team, this)
     }
 
     override fun getCommandNames(): List<String> {
-        return super.getCommandNames() + listOf("hireLegio", "fireLegio")
+        return super.getCommandNames() + listOf("hireLegio", "fireLegio", "newEvent")
+    }
+}
+
+class HireLegio(override var party: Team, prev: TeamChosen) : Hire<Team>(party, prev) {
+    override fun successState(parameter: String): TeamUpState? {
+        return prev.instance(party.also { it.legio hire parameter })
+    }
+}
+
+class FireLegio(override var party: Team, prev: TeamChosen) : Fire<Team>(party, prev) {
+
+    override fun getCommandNames(): List<String> = listOf(*(party.legio.members) .toTypedArray())
+
+    override fun successState(parameter: String): TeamUpState? {
+        return prev.instance(party.also { it.legio fire parameter })
     }
 }
