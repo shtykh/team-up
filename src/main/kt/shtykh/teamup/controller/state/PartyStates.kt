@@ -8,6 +8,7 @@ import shtykh.teamup.domain.Person
 import shtykh.teamup.domain.event.Event
 import shtykh.teamup.domain.team.Team
 import shtykh.teamup.domain.team.util.FileSerializable
+import shtykh.teamup.domain.team.util.Jsonable
 import java.util.*
 
 abstract class PartyChosen<T : Party<T>> :
@@ -33,6 +34,14 @@ abstract class PartyChosen<T : Party<T>> :
         return when (command) {
             Command("hire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { hire(it.id) }, stateByParameter = { hire(it)})
             Command("fire") -> findObject(parameter, objectByKey = { Person.get(it) }, stateByObject = { fire(it.id) }, stateByParameter = { fire(it)})
+            Command("editJson") -> {
+                val instance = party.instance()
+                when(instance) {is Jsonable -> EditJson(instance, this)
+                    else -> {
+                        ErrorState("${instance.javaClass} is not jsonable", this)
+                    }
+                }
+            }
             Command("save") -> when(party) {
                 is FileSerializable -> {
                     party.save()
@@ -64,7 +73,7 @@ abstract class PartyChosen<T : Party<T>> :
     }
 
     override fun getCommandNames(): List<String> {
-        return Arrays.asList("hire", "fire", "setName")
+        return Arrays.asList("setName", "save", "hire", "fire")
     }
 
     abstract fun instance(party: T): PartyChosen<*>

@@ -110,7 +110,7 @@ abstract class MessageReceiverState(message: String, prev: TeamUpState) :
     abstract fun successState(parameter: String): TeamUpState?
 }
 
-class EditJson<out T: Jsonable>(val obj: T, prev: TeamUpState) : MessageReceiverState("Now it's like this: \n${obj.toJson()}\n" + "Send me it in json:", prev) {
+class EditJson<out T: Jsonable>(val json: T, prev: TeamUpState) : MessageReceiverState("Now it's like this: \n${json.toJson()}\n" + "Send me it in json:", prev) {
 
     override fun isAllowed(command: Command): Boolean {
         return true
@@ -119,17 +119,27 @@ class EditJson<out T: Jsonable>(val obj: T, prev: TeamUpState) : MessageReceiver
     override fun getCommandNames(): List<String> = listOf()
 
     override fun successState(parameter: String): TeamUpState {
-        return when (obj) {
-            is Person -> {
-                try {
-                    val newObj: Person = Jsonable.fromJson(parameter)
-                    newObj.save()
-                    PersonChosen(newObj, this)
-                } catch (ex: Exception) {
-                    error(parameter = *arrayOf(parameter, ex.message))
+        return try {
+            when (json) {
+                is Person -> {
+                        val person: Person = Jsonable.fromJson(parameter)
+                        person.save()
+                        PersonChosen(person, this)
                 }
+                is Team -> {
+                    val tean: Team = Jsonable.fromJson(parameter)
+                    tean.save()
+                    TeamChosen(tean, this)
+                }
+                is Event -> {
+                    val event: Event = Jsonable.fromJson(parameter)
+                    event.save()
+                    EventChosen(event, this)
+                }
+                else -> error(parameter = *arrayOf(parameter))
             }
-            else -> error(parameter = *arrayOf(parameter))
+        } catch (ex: Exception) {
+            error(parameter = *arrayOf(parameter, ex.message))
         }
     }
 }

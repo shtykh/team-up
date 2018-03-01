@@ -84,7 +84,7 @@ class TeamChosen(val team: Team, override val prev: TeamUpState) :
     }
 
     override fun getCommandNames(): List<String> {
-        return super.getCommandNames() + listOf("hireLegio", "fireLegio", "newEvent")
+        return super.getCommandNames() + listOf("hireLegio", "fireLegio", "newTeam", "editJson")
     }
 }
 

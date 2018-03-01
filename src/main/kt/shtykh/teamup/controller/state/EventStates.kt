@@ -36,6 +36,10 @@ class CreateEvent(var team: Team, prev: TeamUpState) :
 
 class EventChosen(event: Event, override val prev: TeamUpState) :
     PartyChosen<Event>(event, event.toJson(), prev) {
+    override fun getCommandNames(): List<String> {
+        return super.getCommandNames() + listOf("editJson")
+    }
+
     override fun instance(party: Event): PartyChosen<*> {
         return EventChosen(party, prev)
     }

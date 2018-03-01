@@ -46,7 +46,7 @@ class PersonChosen(val person: Person, prev: TeamUpState) :
 
     override fun nextOrNull(command: Command, parameter: String?): TeamUpState? {
         return when (command) {
-            Command("editJson") -> EditJson(person.also { it.save() }, this)
+            Command("editJson") -> EditJson(person, this)
             Command("newPerson") -> CreatePerson(this)
             else -> error(command, person, parameter)
         }
@@ -57,6 +57,6 @@ class PersonChosen(val person: Person, prev: TeamUpState) :
     }
 
     override fun getCommandNames(): List<String> {
-        return listOf("newPerson", "editJson")
+        return listOf("newPerson", "editJson", "")
     }
 }
