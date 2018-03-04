@@ -8,6 +8,7 @@ import shtykh.teamup.domain.Person
 import shtykh.teamup.domain.event.Event
 import shtykh.teamup.domain.team.Team
 import shtykh.teamup.domain.team.util.Jsonable
+import kotlin.reflect.KCallable
 
 abstract class TeamUpState(open val message: String = "", open val prev: TeamUpState? = null, context: TeamUpChatContext, chatId: String) : ChatState<TeamUpChatContext>(chatId, context) {
     constructor(message: String, prev: TeamUpState) : this(message, prev, prev.context, prev.chatId)
@@ -145,3 +146,18 @@ class EditJson<out T: Jsonable>(val json: T, prev: TeamUpState) : MessageReceive
 }
 
 class ErrorState(msg: String = "", prev: TeamUpState) : Start(msg, prev.context, prev.chatId)
+
+class Confirmation(msg: String = "do it", private val action: () -> Unit, prev: TeamUpState): TeamUpState("Are you sure you want to $msg?", prev) {
+    override fun isAllowed(command: Command): Boolean = true
+
+    override fun getCommandNames(): List<String> = listOf("ok")
+
+    override fun nextOrNull(command: Command, parameter: String?): TeamUpState? = when (command) {
+        Command("ok") -> {
+            action.invoke()
+            prev
+        }
+        else -> prev
+    }
+
+}

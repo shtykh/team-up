@@ -8,7 +8,7 @@ class ChooseTeam(badName: String?, prev: TeamUpState) :
     MessageReceiverState("Give me team name better than \"$badName\"", prev) {
     override fun isAllowed(command: Command) = true
 
-    override fun getCommandNames(): List<String> = listOf("newTeam", *Team.directory.cache.keys.toTypedArray())
+    override fun getCommandNames(): List<String> = listOf("newTeam", "", *Team.directory.cache.keys.toTypedArray())
 
     override fun forCommand(command: Command, parameter: String?): TeamUpState? {
         return when (command) {

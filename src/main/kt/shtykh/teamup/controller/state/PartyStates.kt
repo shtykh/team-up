@@ -25,7 +25,8 @@ abstract class PartyChosen<T : Party<T>> :
 
     override fun isAllowed(command: Command): Boolean {
         return when (command) {
-            Command("save"), Command("fire"), Command("hire"), Command("rename") -> context.adressent.isAdmin(party)
+            Command("save"), Command("fire"), Command("hire"), Command("rename"), Command("delete") -> context.adressent.isAdmin(party)
+            Command("editJson") -> context.adressent?.username == "shtykh" // TODO
             else -> true
         }
     }
@@ -48,6 +49,12 @@ abstract class PartyChosen<T : Party<T>> :
                     instance(party as T)
                 }
                 else -> ErrorState("Can't save $party", this)
+            }
+            Command("delete") -> when(party) {
+                is FileSerializable -> {
+                    Confirmation("delete ${party.name}", { party.delete() }, this)
+                }
+                else -> ErrorState("Can't delete $party", this)
             }
             Command("rename") -> Rename(party, this)
             else -> null
@@ -73,7 +80,7 @@ abstract class PartyChosen<T : Party<T>> :
     }
 
     override fun getCommandNames(): List<String> {
-        return Arrays.asList("setName", "save", "hire", "fire")
+        return Arrays.asList("setName", "delete", "hire", "fire")
     }
 
     abstract fun instance(party: T): PartyChosen<*>

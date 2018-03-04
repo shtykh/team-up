@@ -7,7 +7,7 @@ class ChoosePerson(badName: String?, prev: TeamUpState) :
     MessageReceiverState("Give me person name better than \"$badName\"", prev) {
     override fun isAllowed(command: Command) = true
 
-    override fun getCommandNames(): List<String> = listOf("newPerson", *Person.directory.cache.keys.toTypedArray())
+    override fun getCommandNames(): List<String> = listOf("newPerson", "", *Person.directory.cache.keys.toTypedArray())
 
 
     override fun forCommand(command: Command, parameter: String?): TeamUpState? {
@@ -33,8 +33,7 @@ class CreatePerson(prev: TeamUpState) :
 
     override fun successState(parameter: String): TeamUpState {
         return run {
-            val starter = context.adressent?.username ?: "Nobody"
-            val person = Person(parameter, starter)
+            val person = Person(parameter, parameter)
             person.save()
             PersonChosen(person, this)
         }

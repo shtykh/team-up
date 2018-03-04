@@ -19,6 +19,10 @@ interface FileSerializable: Jsonable {
         return this
     }
 
+    fun delete() {
+        directory().delete(this)
+    }
+
     fun directory(): Directory<FileSerializable>
 
     companion object {
@@ -68,7 +72,7 @@ abstract class Directory<T : FileSerializable> {
     }
 
     fun put(value: T) {
-        val key = value.fileName()
+        val key = value.getKey()
         if (cache[key] != value) {
             cache[key] = value
         }
@@ -78,4 +82,11 @@ abstract class Directory<T : FileSerializable> {
     fun clearCache() {
         cache.clear()
     }
+
+    fun delete(value: T) {
+        cache.remove(value.getKey())
+        value.file().delete()
+    }
+
+    fun T.getKey() = fileName()
 }
