@@ -66,7 +66,7 @@ class TeamChosen(val team: Team, override val prev: TeamUpState) :
                 stateByObject = { fireLegio(it.id) },
                 stateByParameter = { fireLegio(it) }
             )
-            Command("newevent") -> CreateEvent(team, this)
+            Command("newEvent") -> CreateEvent(team, this)
             else -> null
         }
     }
@@ -84,7 +84,7 @@ class TeamChosen(val team: Team, override val prev: TeamUpState) :
     }
 
     override fun getCommandNames(): List<String> {
-        return super.getCommandNames() + listOf("hireLegio", "fireLegio", "newTeam", "editJson")
+        return super.getCommandNames() + listOf("hireLegio", "fireLegio", "newEvent", "editJson")
     }
 }
 

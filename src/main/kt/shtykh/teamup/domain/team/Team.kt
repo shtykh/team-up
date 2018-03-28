@@ -13,17 +13,12 @@ class Team(override var name: String = "Team Awesome", override var admin: Strin
 
     override fun managers(): MutableList<String> = members
 
-    override fun instance(): Team {
-        return this
-    }
+    override fun instance() = this
 
-    override fun fileName(): String {
-        return id
-    }
+    override fun fileName() = id
 
-    override fun directoryFile(): File {
-        return FileSerializable.dir(this.javaClass.simpleName)
-    }
+    override fun directoryFile() = FileSerializable.dir(this.javaClass.simpleName)
+
 
     override infix fun equals(other: Any?): Boolean {
         if (this === other) return true

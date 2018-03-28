@@ -123,9 +123,9 @@ class EditJson<out T: Jsonable>(val json: T, prev: TeamUpState) : MessageReceive
         return try {
             when (json) {
                 is Person -> {
-                        val person: Person = Jsonable.fromJson(parameter)
-                        person.save()
-                        PersonChosen(person, this)
+                    val person: Person = Jsonable.fromJson(parameter)
+                    person.save()
+                    PersonChosen(person, this)
                 }
                 is Team -> {
                     val tean: Team = Jsonable.fromJson(parameter)

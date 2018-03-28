@@ -1,0 +1,11 @@
+{
+  "id" : "Going Hamburg",
+  "members" : [ "john", "paul", "george", "pete", "stewart" ],
+  "name" : "Going Hamburg",
+  "description" : "Hamburg trip",
+  "time" : -293122787892,
+  "place" : "Indra Club",
+  "capacity" : 6,
+  "admin" : "paul",
+  "teamId" : "The Beatles"
+}
